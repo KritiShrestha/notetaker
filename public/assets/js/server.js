@@ -19,8 +19,19 @@ app.get('*', (req, res) => {
   });
   
   // GET route to read the db.json file and return all saved notes as JSON
+  // app.get('/api/notes', (req, res) => {
+  //   fs.readFile(path.join(__dirname, 'db/db.json'), 'utf8', (err, data) => {
+  //     if (err) {
+  //       console.error(err);
+  //       res.status(500).json({ message: 'Internal server error' });
+  //     } else {
+  //       const notes = JSON.parse(data);
+  //       res.json(notes);
+  //     }
+  //   });
+  // });
   app.get('/api/notes', (req, res) => {
-    fs.readFile(path.join(__dirname, 'db', 'db.json'), 'utf8', (err, data) => {
+    fs.readFile('db/db.json', 'utf8', (err, data) => {
       if (err) {
         console.error(err);
         res.status(500).json({ message: 'Internal server error' });
@@ -31,9 +42,7 @@ app.get('*', (req, res) => {
     });
   });
   
-  
-    
-    // Start the server
+    // listen() method is responsible for listening for incoming connections on the specified port 
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
