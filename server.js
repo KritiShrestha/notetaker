@@ -1,76 +1,43 @@
 const express = require('express');
-const fs = require("fs");
-const path = require ('path')
-const app = express();
-const PORT = process.env.PORT || 3001;
-const uniqid = require("uniqid")
+const path = require('path');
+const fs = require('fs');
 
+const app = express();
+const PORT = process.env.PORT || 3002;
+
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-// Static middleware pointing to the public folder
 app.use(express.static('public'));
 
-// GET route to return the notes.html file to user
+// HTML Routes
 app.get('/notes', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/notes.html'));
-
+  res.sendFile(path.join(__dirname, 'public/notes.html'));
 });
 
-// GET route to return the index.html file for all other routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
-
-  
+  res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
-//server reads the db.json file and sends the responds with the parsed notes to the user
+// API Routes
 app.get('/api/notes', (req, res) => {
-  fs.readFile('/db/db.json', 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Internal server error' });
-    } else {
-      const notes = JSON.parse(data);
-      res.json(notes);
-    }
-  });
+  const notesData = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
+  res.json(notesData);
 });
 
-//User submits the new data
 app.post('/api/notes', (req, res) => {
-  const newNote = {
-    title: req.body.title,
-    text: req.body.text,
-    id: uniqid()
-  }
-
-  //Server reads and pushes the new notes after parsing
-  fs.readFile('/db/db.json', 'utf8', (err, data) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-    else {
-      const notes = JSON.parse(data);
-      notes.push(newNote);
-    }
-  })
-
-  //writefile to save new notes
-  fs.writeFile('/db/db.json', JSON.stringify(notes), (err) => {
-    if (err) {
-      res.status(500).json({ message: 'Internal server error' });
-    }
-    else res.json({ note: newNote, message: "Note saved Successfully" })
-  }
-  )
-}
-)
-
-
-// listen() method is responsible for listening for incoming connections on the specified port 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  const newNote = req.body;
+  const notesData = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
+  newNote.id = notesData.length + 1;
+  notesData.push(newNote);
+  fs.writeFileSync('./db/db.json', JSON.stringify(notesData));
+  res.json(newNote);
 });
 
+app.get('/assets/js/notes.js', function(req, res) {
+  res.sendFile(path.join(__dirname, '/public/assets/js/notes.js'));
+});
 
+app.listen(PORT, () => {
+  console.log(`App listening on PORT ${PORT}`);
+});
 
