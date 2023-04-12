@@ -1,4 +1,4 @@
-# Note Taker Starter Code
+# NoteTaker
 ## Description
 This is an application developed for user to make their daily life easy. User can write and save  notes for a reminder.
 
