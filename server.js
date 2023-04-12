@@ -1,43 +1,87 @@
+//require dependencies
 const express = require('express');
-const path = require('path');
-const fs = require('fs');
-
+// Import the built-in Path module
+const path = require("path");
+// Import the built-in FileSystem module
+const fs = require("fs");
+// Import the uuid library
+const uuid = require('uuid');
+// create express app
 const app = express();
-const PORT = process.env.PORT || 3002;
+//create a PORT variable
+const PORT = process.env.PORT || 3005;
 
-app.use(express.urlencoded({ extended: true }));
+//set up express to handle data parsing
+app.use(express.urlencoded({
+	extended: true
+}));
+// Handles json data
 app.use(express.json());
-app.use(express.static('public'));
+// Serve static files from the 'public' directory
+app.use(express.static("public"));
 
-// HTML Routes
-app.get('/notes', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/notes.html'));
+// route to get notes
+app.get('/api/notes', function (req, res) {
+	// read the db.json file
+	fs.readFile('./db/db.json', 'utf8', (err, data) => {
+    	if (err) throw err;
+    	res.json(JSON.parse(data));
+	});
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
+// route to add a new note and add it to the json file
+app.post("/api/notes", function (req, res) {
+	//get the new note body
+	const newNote = req.body;
+	newNote.id = uuid.v4();
+
+	// read the db.json file
+	fs.readFile('./db/db.json', 'utf8', (err, data) => {
+    	if (err) throw err;
+    	const notes = JSON.parse(data);
+    	// add new note to the notes array
+    	notes.push(newNote);
+    	// write the updated notes
+    	fs.writeFile('./db/db.json', JSON.stringify(notes), (err) => {
+        	if (err) throw err;
+        	console.log("New note added.");
+        	res.json(newNote);
+    	});
+	});
 });
 
-// API Routes
-app.get('/api/notes', (req, res) => {
-  const notesData = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
-  res.json(notesData);
+// route to delete notes
+app.delete('/api/notes/:id', (req, res) => {
+	// get the id of the note
+	const noteId = req.params.id;
+
+	// read the db.json file
+	fs.readFile('./db/db.json', 'utf8', (err, data) => {
+    	if (err) throw err;
+    	const notes = JSON.parse(data);
+    	// removes the note with provided id using filter method
+    	const filteredNotes = notes.filter((note) => note.id !== noteId);
+
+    	// write the updated notes
+    	fs.writeFile('./db/db.json', JSON.stringify(filteredNotes), (err) => {
+        	if (err) throw err;
+        	console.log("Note deleted.");
+        	res.json({
+            	success: true
+        	});
+    	});
+	});
 });
 
-app.post('/api/notes', (req, res) => {
-  const newNote = req.body;
-  const notesData = JSON.parse(fs.readFileSync('./db/db.json', 'utf-8'));
-  newNote.id = notesData.length + 1;
-  notesData.push(newNote);
-  fs.writeFileSync('./db/db.json', JSON.stringify(notesData));
-  res.json(newNote);
+// Handles GET requests to the '/notes' route
+app.get("/notes", function (req, res) {
+	res.sendFile(path.join(__dirname, "./public/notes.html"));
 });
 
-app.get('/assets/js/notes.js', function(req, res) {
-  res.sendFile(path.join(__dirname, '/public/assets/js/notes.js'));
+// Handles all other GET requests
+app.get("/*", function (req, res) {
+	res.sendFile(path.join(__dirname, "./public/index.html"));
 });
 
-app.listen(PORT, () => {
-  console.log(`App listening on PORT ${PORT}`);
-});
-
+// create server listener
+app.listen(PORT, () => console.log(`Listening on PORT: ${PORT}`));

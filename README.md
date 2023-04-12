@@ -9,7 +9,6 @@ This is an application developed for user to make their daily life easy. User ca
 - [Usage](#usage)
 - [Contribution](#contribution)
 - [Questions](#questions)
-- [Videolink](#Videolink)
 
 ## Technology
 Javascript, Node.js, Express.js
@@ -27,6 +26,5 @@ Kriti Shrestha
 You can find me on Github at [KritiShrestha](https://github.com/KritiShrestha)
 Feel free to reach me out at shrkriti07@gmail.com if you have any additional questions
 
-## Videolink
-Here is the walkthrough video ![Videolink](./assets/video/notetaker)
+
 
